@@ -69,7 +69,9 @@
     "web_accessible_resources": [
       {
         "resources": [
-          "assets/**/*",
+          "assets/*",
+          "assets/images/*",
+          "assets/images/cursors/**/*",
           "~/styles/customLoad.css"
         ],
         "matches": [
