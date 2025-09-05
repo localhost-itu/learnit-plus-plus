@@ -1,8 +1,8 @@
 {
   "name": "learnit-plus-plus",
   "displayName": "LearnIT++",
-  "version": "1.5.3",
-  "description": "Improved design and functionality of the LearnIT page for IT-University Of Copenhagen",
+  "version": "1.6.0",
+  "description": "Improved design and functionality of the LearnIT page for IT-University of Copenhagen",
   "author": "https://github.com/PhilipFlyvholm/learnit-plus-plus/graphs/contributors",
   "repository": {
     "type": "git",
