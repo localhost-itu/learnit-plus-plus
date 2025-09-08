@@ -3,16 +3,16 @@
   "displayName": "LearnIT++",
   "version": "1.6.0",
   "description": "Improved design and functionality of the LearnIT page for IT-University of Copenhagen",
-  "author": "https://github.com/PhilipFlyvholm/learnit-plus-plus/graphs/contributors",
+  "author": "https://github.com/localhost-itu/learnit-plus-plus/graphs/contributors",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/PhilipFlyvholm/learnit-plus-plus.git"
+    "url": "git+https://github.com/localhost-itu/learnit-plus-plus.git"
   },
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/PhilipFlyvholm/learnit-plus-plus/issues"
+    "url": "https://github.com/localhost-itu/learnit-plus-plus/issues"
   },
-  "homepage": "https://github.com/PhilipFlyvholm/learnit-plus-plus",
+  "homepage": "https://github.com/localhost-itu/learnit-plus-plus",
   "scripts": {
     "dev": "plasmo dev",
     "dev:verbose": "plasmo dev --verbose",
@@ -55,7 +55,10 @@
   "manifest": {
     "browser_specific_settings": {
       "gecko": {
-        "id": "$FIREFOX_EXT_ID"
+        "id": "$FIREFOX_EXT_ID",
+        "data_collection_permissions": {
+          "required": ["none"]
+        }
       }
     },
     "host_permissions": [

@@ -98,7 +98,7 @@ function addGithubLink() {
   const userMenu = document.querySelector("#usernavigation");
   if (!userMenu) return;
   const githubLink = document.createElement("a");
-  githubLink.href = "https://github.com/PhilipFlyvholm/learnit-plus-plus"
+  githubLink.href = "https://github.com/localhost-itu/learnit-plus-plus"
   githubLink.className = "nav-link";
   //Add github icon
   githubLink.innerHTML = svgIcons.github;

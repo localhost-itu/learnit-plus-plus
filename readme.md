@@ -23,7 +23,7 @@ Install via [Chrome Web Store](https://chrome.google.com/webstore/detail/learnit
 _Manual install:_
 To install LearnIt++, follow these simple steps:
 
-1. Download the latest zip from the [releases](https://github.com/PhilipFlyvholm/learnit-plus-plus/releases) on GitHub.
+1. Download the latest zip from the [releases](https://github.com/localhost-itu/learnit-plus-plus/releases) on GitHub.
 2. Unpack the zip
 3. Go to `chrome://extensions` in your browser
 4. Enable developer mode in the top right
@@ -34,7 +34,7 @@ To install LearnIt++, follow these simple steps:
 
 Only manual install since Firefox does not allow add-ons on the store for internal sites such as LearnIT
 
-1. Download the latest `xpi` file from the [releases](https://github.com/PhilipFlyvholm/learnit-plus-plus/releases) on GitHub.
+1. Download the latest `xpi` file from the [releases](https://github.com/localhost-itu/learnit-plus-plus/releases) on GitHub.
 2. Go to `about:addons` in your browser
 3. Pres the gear icon on the other side of "Customize Firefox"
 4. Press `Install add-on from file...`
@@ -67,7 +67,7 @@ For contributing please read [CONTRIBUTING.md](./CONTRIBUTING.md).
 1. Use `bun build` to build the extension and make a local build in the `build/` folder
 2. Use `bun package:chrome` to generate a zip in the `build/` folder for chrome
 3. Use `bun package:firefox` for a Firefox zip package
-4. Done time to distribute 🎉
+4. **Done**, time to distribute 🎉
 
 ## Support
 
