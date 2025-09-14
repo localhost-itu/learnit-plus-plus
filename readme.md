@@ -1,16 +1,24 @@
-# LearnIT++
+# <img src="assets/icon.png" alt="LearnIT++ logo" width="100" style="vertical-align:middle;"/> LearnIT++
 
-<img src="assets/icon.png" alt="LearnIT++ logo" width="200"/>
-
-**Welcome to LearnIt++ Extension!**
+_Improved UI and features for LearnIT at ITU_
 
 | ![learnit++ light mode](assets/images/preview-images/plus-light.png) | ![learnit++ dark mode](assets/images/preview-images/plus-dark.png) |
-| --- | --- |
-| ![hacker mode](assets/images/preview-images/hacker.png) | ![retro light mode](assets/images/preview-images/retro.png) |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| ![hacker mode](assets/images/preview-images/hacker.png)              | ![retro light mode](assets/images/preview-images/retro.png)        |
 
 ## Description
 
-Improved design and functionality of the LearnIT page for IT-University Of Copenhagen
+LearnIT++ is a lightweight browser extension that refreshes the LearnIT platform  with a cleaner interface, smarter layouts and a growing set of productivity enhancements.
+
+What you get out of the box:
+
+- Multiple handcrafted themes (Light, Dark, Hacker, Retro) you can switch between instantly
+- Polished spacing & layout tweaks for a calmer, denser, more scannable dashboard
+- Calendar integration for quicker planning without leaving LearnIT
+- Accessibility & usability refinements (clearer icons, improved drawers, better external‑link indicators)
+- A steady stream of quality‑of‑life improvements driven by student feedback
+
+Install it, pick a theme, and enjoy a smoother day-to-day LearnIT experience.
 
 ## Installation
 
@@ -32,16 +40,21 @@ To install LearnIt++, follow these simple steps:
 
 **Firefox guide:**
 
-Only manual install since Firefox does not allow add-ons on the store for internal sites such as LearnIT
+You can now install LearnIT++ for Firefox directly from the Mozilla Add-ons store:
+
+1. Visit [LearnIT++ on Mozilla Add-ons](https://addons.mozilla.org/en-GB/firefox/addon/learnitplusplus/)
+2. Click "Add to Firefox" and follow the prompts to install.
+3. Enjoy!
+
+_Manual install:_
 
 1. Download the latest `xpi` file from the [releases](https://github.com/localhost-itu/learnit-plus-plus/releases) on GitHub.
 2. Go to `about:addons` in your browser
-3. Pres the gear icon on the other side of "Customize Firefox"
+3. Press the gear icon next to "Customize Firefox"
 4. Press `Install add-on from file...`
 5. Select the downloaded `xpi` file
-6. A popup may show up asking if you want to install the add-on, accept this popup.
+6. Accept the popup to install the add-on.
 7. Enjoy!
-
 
 **Safari:**
 
@@ -56,7 +69,7 @@ For contributing please read [CONTRIBUTING.md](./CONTRIBUTING.md).
 ## Development
 
 > [!NOTE]
-> We use Bun instead of Node. If you prefer using Node we don't guarantee that building will work, but just replace `bun` with `npm run` in the commands.
+> We use Bun instead of Node. If you prefer using Node we don't guarantee that building will work, but just replace `bun` with `npm` in the commands.
 
 1. Run `bun i` if it is the first time building
 2. Run `bun dev` to start the development server
