@@ -10,9 +10,7 @@ import { getScrollbarEvents } from "~scrollbar/partyLoader"
 import { useCalendarSettings } from "./calendarHooks"
 import { formatEvent } from "./EventFormatter"
 import {
-  fetchMoodleMonth,
-  // mapMoodleSubmissionsToFullCalendar,
-  // fetchMoodleUpcomingSubmissions,
+  getCachedMoodleMonth,
   mapMonthlyToFullCalendar
 } from "./eventsources/moodle"
 
@@ -195,7 +193,10 @@ const CalendarView = ({ toggleView }: { toggleView: () => void }) => {
                   try {
                     const y = fetchInfo.start.getFullYear()
                     const m = fetchInfo.start.getMonth() + 1 // JS months 0–11 → Moodle needs 1–12
-                    const monthData = await fetchMoodleMonth(y, m)
+                    const monthData = await getCachedMoodleMonth({
+                      year: y,
+                      month: m
+                    })
                     const events = mapMonthlyToFullCalendar(monthData)
                     success(events)
                   } catch (err) {

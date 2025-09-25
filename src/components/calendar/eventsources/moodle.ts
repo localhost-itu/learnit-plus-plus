@@ -3,6 +3,8 @@
 
 import type { DateInput, EventInput } from "@fullcalendar/core"
 
+import { createCachedFetcher } from "./cache"
+
 // Utility: robustly get sesskey from Moodle
 export function getSesskey(): string | null {
   const viaCfg = (window as any)?.M?.cfg?.sesskey as string | undefined
@@ -21,20 +23,13 @@ export function getSesskey(): string | null {
 
 // Fetch upcoming events within a date window
 // Limit to 25 by default to avoid overload (must be between 1 and 50)
-export async function fetchMoodleUpcomingSubmissions({
+export async function fetchMoodleSubmissions({
   from,
   to,
   limit = 25
 }: { from?: Date; to?: Date; limit?: number } = {}) {
   const now = Math.floor(Date.now() / 1000)
-  const timesortfrom = Math.floor(
-    (from ? from.getTime() : Date.now() - 5 * 86400000) / 1000
-  ) // default to 5 days back
-  const timesortto = Math.floor(
-    (to ? to.getTime() : Date.now() + 60 * 86400000) / 1000
-  ) // default to 60 days ahead
-  const sesskey = getSesskey()
-  if (!sesskey) throw new Error("sesskey not found")
+  const fromTime = Math.floor(from.getTime() / 1000)
 
   const body = JSON.stringify([
     {
@@ -42,23 +37,13 @@ export async function fetchMoodleUpcomingSubmissions({
       methodname: "core_calendar_get_action_events_by_timesort",
       args: {
         limitnum: limit,
-        timesortfrom: now - 24 * 3600 * 12 // now - ~12 days (kept from previous logic)
-        // timesortto: now + 30*24*3600,
-        // limittononsuspendedevents: true,
+        timesortfrom: fromTime
       }
     }
   ])
 
-  const res = await fetch(
-    `/lib/ajax/service.php?sesskey=${encodeURIComponent(sesskey)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body
-    }
-  )
-  const data = await res.json()
+  const data = await fetchAjaxJson(body)
+
   if (!Array.isArray(data) || (data[0] as any)?.error) {
     throw new Error((data[0] as any)?.exception?.message || "WS error")
   }
@@ -67,9 +52,6 @@ export async function fetchMoodleUpcomingSubmissions({
 
 // Fetch a month's calendar grid — includes events by day
 export async function fetchMoodleMonth(year: number, month: number) {
-  const sesskey = getSesskey()
-  if (!sesskey) throw new Error("sesskey not found")
-
   const body = JSON.stringify([
     {
       index: 0,
@@ -84,22 +66,27 @@ export async function fetchMoodleMonth(year: number, month: number) {
     }
   ])
 
-  const res = await fetch(
-    `/lib/ajax/service.php?sesskey=${encodeURIComponent(sesskey)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body
-    }
-  )
+  const data = await fetchAjaxJson(body)
 
-  const data = await res.json()
   if (!Array.isArray(data) || (data[0] as any)?.error) {
     throw new Error((data[0] as any)?.exception?.message || "Moodle WS error")
   }
   return (data[0] as any).data // contains eventsbyday, month, year, etc.
 }
+
+// Cached wrappers
+// Cache a month response by year-month for e.g. 2 minutes; allow stale serve up to 10 minutes
+export const getCachedMoodleMonth = createCachedFetcher<
+  { year: number; month: number },
+  any
+>({
+  source: "moodle:month",
+  ttlMs: 2 * 60 * 1000,
+  staleWhileRevalidateMs: 10 * 60 * 1000,
+  buildKey: ({ year, month }) => `${year}-${month}`,
+  fetcher: ({ year, month }) => fetchMoodleMonth(year, month)
+  // storage: "localStorage", // enable if you want persistence
+})
 
 // Map Moodle raw events from "action events" to FullCalendar EventInput
 export function mapMoodleSubmissionsToFullCalendar(
@@ -126,8 +113,7 @@ export function mapMoodleSubmissionsToFullCalendar(
       title: name,
       start: startSec ? new Date(startSec * 1000).toISOString() : undefined,
       end: endSec ? new Date(endSec * 1000).toISOString() : undefined,
-      url: url || undefined,
-      
+      url: url || undefined
     }
   })
 }
@@ -170,19 +156,18 @@ export function mapMonthlyToFullCalendar(monthData: any): EventInput[] {
   return out
 }
 
-// Utility: determine if a date range is outside configured slot times
-export function isDateInputOutsideSlot(
-  start: DateInput,
-  end: DateInput,
-  slotMinTime: string,
-  slotMaxTime: string
-) {
-  const startDate = new Date(start.toString())
-  const endDate = new Date(end.toString())
-  const slotMin = new Date(startDate.toDateString() + " " + slotMinTime)
-  const slotMax = new Date(startDate.toDateString() + " " + slotMaxTime)
-  const outsideSlot =
-    (startDate < slotMin && endDate < slotMin) ||
-    (startDate > slotMax && endDate > slotMax)
-  return outsideSlot
+async function fetchAjaxJson(body: string) {
+  const sesskey = getSesskey()
+  if (!sesskey) throw new Error("sesskey not found")
+
+  const res = await fetch(
+    `/lib/ajax/service.php?sesskey=${encodeURIComponent(sesskey)}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body
+    }
+  )
+  return res.json()
 }
