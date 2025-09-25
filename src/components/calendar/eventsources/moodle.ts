@@ -84,8 +84,8 @@ export const getCachedMoodleMonth = createCachedFetcher<
   ttlMs: 2 * 60 * 1000,
   staleWhileRevalidateMs: 10 * 60 * 1000,
   buildKey: ({ year, month }) => `${year}-${month}`,
-  fetcher: ({ year, month }) => fetchMoodleMonth(year, month)
-  // storage: "localStorage", // enable if you want persistence
+  fetcher: ({ year, month }) => fetchMoodleMonth(year, month),
+  storage: "sessionStorage"
 })
 
 // Map Moodle raw events from "action events" to FullCalendar EventInput

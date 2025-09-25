@@ -1,25 +1,33 @@
 // Generic caching utility for event sources (or any async fetchers)
 // - Keyed by source + a caller-provided key builder
-// - Supports TTL, in-flight request dedupe, optional localStorage backing
-// - Stays simple and browser-friendly
+// - Supports TTL, in-flight request dedupe, optional persistent storage
+// - Bounded persistent cache with simple LRU trimming to prevent bloat
 
-export type CacheStorageMode = "memory" | "localStorage"
+export type CacheStorageMode = "memory" | "localStorage" | "sessionStorage"
 
 type CacheEntry<T> = {
   data: T
   ts: number // epoch ms
-  promise?: Promise<T> // in-flight fetch promise for deduplication
 }
 
 const memoryStore: Map<string, CacheEntry<any>> = new Map()
+const inFlight: Map<string, Promise<unknown>> = new Map()
 
 function fullKey(source: string, key: string) {
   return `events:${source}:${key}`
 }
 
-function getFromLocalStorage<T>(k: string): CacheEntry<T> | undefined {
+function getStorage(mode: CacheStorageMode) {
+  if (mode === "localStorage") return window.localStorage
+  if (mode === "sessionStorage") return window.sessionStorage
+  return null
+}
+
+function getFromPersistent<T>(mode: CacheStorageMode, k: string): CacheEntry<T> | undefined {
+  const store = getStorage(mode)
+  if (!store) return undefined
   try {
-    const raw = localStorage.getItem(k)
+    const raw = store.getItem(k)
     if (!raw) return undefined
     return JSON.parse(raw)
   } catch {
@@ -27,11 +35,47 @@ function getFromLocalStorage<T>(k: string): CacheEntry<T> | undefined {
   }
 }
 
-function setToLocalStorage<T>(k: string, entry: CacheEntry<T>) {
+function setToPersistent<T>(mode: CacheStorageMode, k: string, entry: CacheEntry<T>) {
+  const store = getStorage(mode)
+  if (!store) return
   try {
-    localStorage.setItem(k, JSON.stringify(entry))
+    store.setItem(k, JSON.stringify(entry))
   } catch {
-    // best effort; ignore quota/serialization issues
+    // best effort; ignore quota/serialization issues handled by caller
+    throw new Error("PERSIST_FAIL")
+  }
+}
+
+function listSourceKeys(mode: CacheStorageMode, source: string): string[] {
+  const store = getStorage(mode)
+  if (!store) return []
+  const prefix = `events:${source}:`
+  const keys: string[] = []
+  for (let i = 0; i < store.length; i++) {
+    const key = store.key(i)
+    if (key && key.startsWith(prefix)) keys.push(key)
+  }
+  return keys
+}
+
+function tryTrimPersistent(mode: CacheStorageMode, source: string, keep: number) {
+  // Remove oldest entries for this source until length <= keep
+  const store = getStorage(mode)
+  if (!store) return
+  const keys = listSourceKeys(mode, source)
+  const withTs = keys
+    .map((k) => {
+      const e = getFromPersistent<any>(mode, k)
+      return { k, ts: e?.ts ?? 0 }
+    })
+    .sort((a, b) => b.ts - a.ts) // newest first
+  if (withTs.length <= keep) return
+  for (const { k } of withTs.slice(keep)) {
+    try {
+      store.removeItem(k)
+    } catch {
+      // ignore
+    }
   }
 }
 
@@ -40,19 +84,24 @@ export function clearCache(source?: string) {
     memoryStore.clear()
     return
   }
-  // delete subset from memory
+  const prefix = `events:${source}:`
   for (const k of Array.from(memoryStore.keys())) {
-    if (k.startsWith(`events:${source}:`)) memoryStore.delete(k)
+    if (k.startsWith(prefix)) memoryStore.delete(k)
   }
-  // optionally purge localStorage entries with the prefix
-  try {
-    const prefix = `events:${source}:`
-    for (let i = localStorage.length - 1; i >= 0; i--) {
-      const key = localStorage.key(i)
-      if (key && key.startsWith(prefix)) localStorage.removeItem(key)
+  // purge both localStorage and sessionStorage
+  for (const mode of ["localStorage", "sessionStorage"] as const) {
+    const store = getStorage(mode)
+    if (!store) continue
+
+    try {
+      // iterate backwards to be safe when removing
+      for (let i = store.length - 1; i >= 0; i--) {
+        const key = store.key(i)
+        if (key && key.startsWith(prefix)) store.removeItem(key)
+      }
+    } catch {
+      // ignore
     }
-  } catch {
-    // ignore
   }
 }
 
@@ -63,6 +112,7 @@ export function createCachedFetcher<P, R>(opts: {
   fetcher: (params: P) => Promise<R> // actual fetcher
   storage?: CacheStorageMode // default 'memory'
   staleWhileRevalidateMs?: number // if set, can return stale and refresh in background
+  maxEntries?: number // only for persistent modes
 }) {
   const {
     source,
@@ -70,77 +120,72 @@ export function createCachedFetcher<P, R>(opts: {
     buildKey,
     fetcher,
     storage = "memory",
-    staleWhileRevalidateMs
+    staleWhileRevalidateMs = 0,
+    maxEntries = 24
   } = opts
 
-  const getEntry = <T>(k: string): CacheEntry<T> | undefined => {
-    if (storage === "localStorage") return getFromLocalStorage<T>(k)
-    return memoryStore.get(k)
+  const getEntry = <T,>(k: string): CacheEntry<T> | undefined => {
+    if (storage === "memory") return memoryStore.get(k)
+    return getFromPersistent<T>(storage, k)
   }
-  const setEntry = <T>(k: string, entry: CacheEntry<T>) => {
-    if (storage === "localStorage") return setToLocalStorage<T>(k, entry)
-    memoryStore.set(k, entry)
+  const setEntry = <T,>(k: string, entry: CacheEntry<T>) => {
+    if (storage === "memory") return memoryStore.set(k, entry)
+    try {
+      setToPersistent<T>(storage, k, entry)
+    } catch {
+      // Quota or serialization error: trim and retry once
+      tryTrimPersistent(storage, source, Math.max(1, Math.floor(maxEntries * 0.9)))
+      try {
+        setToPersistent<T>(storage, k, entry)
+      } catch {
+        // give up persisting
+      }
+    }
   }
 
   async function get(params: P): Promise<R> {
     const k = fullKey(source, buildKey(params))
     const now = Date.now()
 
-    let entry = getEntry<R>(k)
+    const inflightKey = `${k}:inflight`
+    const inflightExisting = inFlight.get(inflightKey)
+    if (inflightExisting) return inflightExisting as Promise<R>
 
-    // If there is an in-flight fetch, await it (dedupe)
-    if (entry?.promise) {
+    const entry = getEntry<R>(k)
+    if (entry) {
+      const age = now - entry.ts
+      if (age <= ttlMs) {
+        return entry.data
+      }
+      if (staleWhileRevalidateMs > 0 && age <= ttlMs + staleWhileRevalidateMs) {
+        // serve stale and refresh in background
+        const p = (async () => {
+          try {
+            const fresh = await fetcher(params)
+            setEntry<R>(k, { data: fresh, ts: Date.now() })
+            return fresh
+          } finally {
+            inFlight.delete(inflightKey)
+          }
+        })()
+        inFlight.set(inflightKey, p)
+        return entry.data
+      }
+      // else expired, fetch fresh below
+    }
+
+    // Fetch fresh
+    const p = (async () => {
       try {
-        const data = await entry.promise
+        const data = await fetcher(params)
+        setEntry<R>(k, { data, ts: Date.now() })
         return data
-      } catch {
-        // fall through to try again below
+      } finally {
+        inFlight.delete(inflightKey)
       }
-    }
-
-    // If we have fresh data, return it
-    if (entry && now - entry.ts <= ttlMs) {
-      return entry.data
-    }
-
-    // If stale-while-revalidate is enabled and we have stale data, return it and refresh in background
-    if (
-      entry &&
-      staleWhileRevalidateMs &&
-      now - entry.ts <= staleWhileRevalidateMs
-    ) {
-      const staleData = entry.data as R
-      const bgPromise: Promise<R> = fetcher(params)
-        .then((data) => {
-          setEntry<R>(k, { data, ts: Date.now() })
-          return data
-        })
-        .catch(() => {
-          // keep stale if refresh fails
-          return staleData
-        })
-      // store the background promise to dedupe concurrent calls
-      setEntry<R>(k, { ...entry, promise: bgPromise })
-      return entry.data
-    }
-
-    // Otherwise fetch fresh, store, and return
-    const p = fetcher(params)
-    entry = { data: undefined as unknown as R, ts: now, promise: p }
-    setEntry<R>(k, entry)
-
-    try {
-      const data = await p
-      setEntry<R>(k, { data, ts: Date.now() })
-      return data
-    } catch (err) {
-      // If there's an old value, we can return it as a last resort
-      if (entry && (entry as any).data !== undefined) {
-        return (entry as any).data as R
-      }
-      // Else rethrow
-      throw err
-    }
+    })()
+    inFlight.set(inflightKey, p)
+    return p as Promise<R>
   }
 
   return get
