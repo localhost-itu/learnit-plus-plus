@@ -7,6 +7,7 @@ import React, { useEffect, useId, useMemo, useState } from "react"
 import { sendToBackground } from "@plasmohq/messaging"
 
 import { DarkModeState, defaultTheme, themes } from "~/styles/main"
+import { clearCache } from "~components/calendar/eventsources/cache"
 
 type Settings = {
   theme: string
@@ -75,7 +76,7 @@ export default function IndexPopup() {
             if (chrome.runtime?.lastError) {
               console.warn("storage.set error", chrome.runtime.lastError)
             }
-            console.log("Restored: " + key);
+            console.log("Restored: " + key)
           })
         } else {
           console.error("No backup found for " + key)
@@ -84,7 +85,7 @@ export default function IndexPopup() {
             if (chrome.runtime?.lastError) {
               console.warn("storage.remove error", chrome.runtime.lastError)
             }
-            console.log("Removed: " + key);
+            console.log("Removed: " + key)
           })
         }
       })
@@ -212,15 +213,31 @@ export default function IndexPopup() {
                           "Clear chrome.storage.local? This cannot be undone."
                         )
                       ) {
-                        chrome.storage.local.clear(() =>
-                          <MessageModal
-                            open={true}
-                            title="Storage cleared"
-                          />
-                        )
+                        chrome.storage.local.clear(() => (
+                          <MessageModal open={true} title="Storage cleared" />
+                        ))
                       }
                     }}>
                     Clear storage
+                  </Button>
+                </FormRow>
+                <FormRow
+                  label="Clear calendar cache"
+                  hint="Removes cached calendar event data">
+                  <Button
+                    kind="ghost"
+                    onClick={() => {
+                      if (
+                        confirm(
+                          "Clear calendar event cache? This cannot be undone."
+                        )
+                      ) {
+                        clearCache()
+                        // Note: MessageModal should be managed by state, not rendered inline
+                        // setModalOpen(true);
+                      }
+                    }}>
+                    Clear cache
                   </Button>
                 </FormRow>
               </SectionCard>
@@ -239,10 +256,7 @@ export default function IndexPopup() {
             <Button
               onClick={() => {
                 chrome.storage.local.set(settings, () => {
-                  <MessageModal
-                    open={true}
-                    title="Saved"
-                  />
+                  ;<MessageModal open={true} title="Saved" />
                 })
               }}>
               Save
@@ -566,9 +580,7 @@ function DangerZone(props: { onResetDashboard: () => void }) {
       <p className="mb-2 text-xs text-[var(--page-fg-color-alt)]">
         Reset dashboard layout to the backed-up defaults.
       </p>
-      <Button
-        kind="ghost"
-        onClick={() => setConfirmOpen(true) }>
+      <Button kind="ghost" onClick={() => setConfirmOpen(true)}>
         Reset dashboard layout
       </Button>
       <MessageModal
@@ -582,11 +594,18 @@ function DangerZone(props: { onResetDashboard: () => void }) {
           </p>
         }
         actions={[
-          { label: "Cancel", onClick: () => setConfirmOpen(false) , kind: "ghost"},
-          { label: "Reset", onClick: () => { 
-              props.onResetDashboard();
-              setConfirmOpen(false); 
-            }, kind: "primary"
+          {
+            label: "Cancel",
+            onClick: () => setConfirmOpen(false),
+            kind: "ghost"
+          },
+          {
+            label: "Reset",
+            onClick: () => {
+              props.onResetDashboard()
+              setConfirmOpen(false)
+            },
+            kind: "primary"
           }
         ]}
       />
@@ -595,8 +614,7 @@ function DangerZone(props: { onResetDashboard: () => void }) {
 }
 
 /* Icons */
-
-function ChevronDown(props: { className?: string }) {
+export function ChevronDown(props: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -673,8 +691,7 @@ function MessageModal(props: {
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center"
-    >
+      className="fixed inset-0 z-50 flex items-center justify-center">
       <div
         className="absolute inset-0 bg-black/40"
         onClick={() => onClose?.()}
@@ -682,8 +699,7 @@ function MessageModal(props: {
       />
       <div
         className="relative z-10 w-[320px] max-w-[92%] rounded-lg border p-4 shadow-xl
-                   bg-[var(--card-bg-color)] border-[var(--card-border-color)] text-[var(--page-fg-color)]"
-      >
+                   bg-[var(--card-bg-color)] border-[var(--card-border-color)] text-[var(--page-fg-color)]">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             {title && <h3 className="text-sm font-semibold">{title}</h3>}
@@ -693,8 +709,7 @@ function MessageModal(props: {
             aria-label="Close"
             onClick={() => onClose?.()}
             className="ml-2 inline-flex h-7 w-7 items-center justify-center rounded-md
-                       text-[var(--page-fg-color-alt)] hover:bg-[var(--field-bg-color)]"
-          >
+                       text-[var(--page-fg-color-alt)] hover:bg-[var(--field-bg-color)]">
             ✕
           </button>
         </div>
@@ -711,8 +726,7 @@ function MessageModal(props: {
                 kind={a.kind ?? "primary"}
                 onClick={() => {
                   a.onClick()
-                }}
-              >
+                }}>
                 {a.label}
               </Button>
             ))}

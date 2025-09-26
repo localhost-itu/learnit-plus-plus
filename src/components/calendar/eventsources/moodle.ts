@@ -81,8 +81,8 @@ export const getCachedMoodleMonth = createCachedFetcher<
   any
 >({
   source: "moodle:month",
-  ttlMs: 2 * 60 * 1000,
-  staleWhileRevalidateMs: 10 * 60 * 1000,
+  ttlMs: 60 * 60 * 1000, // 1 hour
+  staleWhileRevalidateMs: 6 * 60 * 60 * 1000, // 6 hours
   buildKey: ({ year, month }) => `${year}-${month}`,
   fetcher: ({ year, month }) => fetchMoodleMonth(year, month),
   storage: "sessionStorage"

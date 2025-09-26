@@ -7,7 +7,11 @@ import {
   Timestamp,
   where
 } from "firebase/firestore/lite"
+import { createCachedFetcher } from "~components/calendar/eventsources/cache"
+import type { DateInput, EventInput } from "@fullcalendar/core"
 
+// Firebase config for "scrollweb" project
+// (public info, safe to expose in client code)
 const firebaseConfig = {
   apiKey: "AIzaSyAyNN_bwmKNBIjigrcQf9cLpO58DfKb7lY",
   authDomain: "scrollweb-cc9b4.firebaseapp.com",
@@ -22,7 +26,27 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 const db = getFirestore(app)
 
-export async function getScrollbarEvents() {
+// Fetch events from Firestore, caching results for 5 minutes
+export const getCachedScrollbarEvents = createCachedFetcher<
+  { start: Date; end: Date },
+  EventInput[]
+>({
+  source: "scrollbar",
+  ttlMs: 12 * 60 * 60 * 1000, // 12 hours
+  staleWhileRevalidateMs: 24 * 60 * 60 * 1000, // 24 hours
+  buildKey: ({ start, end }) => {
+    return `${start.toISOString().slice(0, 10)}_${end
+      .toISOString()
+      .slice(0, 10)}`
+  },
+  fetcher: async ({ start, end }) => {
+    return getScrollbarEvents()
+  },
+  storage: "sessionStorage",
+  maxEntries: 20 // only keep 20 entries in persistent storage
+})
+
+export async function getScrollbarEvents(from: Date = new Date()): Promise<EventInput[]> {
   const eventsCollection = collection(db, "env/prod/events")
   const oneDayAgo = Timestamp.fromMillis(Date.now() - 24 * 60 * 60 * 1000); // 1 day ago
   const eventsQuery = query(eventsCollection, where("start", ">=", oneDayAgo))

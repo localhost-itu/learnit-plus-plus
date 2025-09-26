@@ -5,7 +5,7 @@ import FullCalendar from "@fullcalendar/react"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import { useEffect, useRef, useState } from "react"
 
-import { getScrollbarEvents } from "~scrollbar/partyLoader"
+import { getCachedScrollbarEvents, getScrollbarEvents } from "~scrollbar/partyLoader"
 
 import { useCalendarSettings } from "./calendarHooks"
 import { formatEvent } from "./EventFormatter"
@@ -183,7 +183,7 @@ const CalendarView = ({ toggleView }: { toggleView: () => void }) => {
                   successCallback,
                   failureCallback
                 ) {
-                  successCallback(await getScrollbarEvents())
+                  successCallback(await getCachedScrollbarEvents({ start: info.start, end: info.end }))
                 },
                 color: "#fff319cc",
                 textColor: getConstrastColor("#fff319cc")
