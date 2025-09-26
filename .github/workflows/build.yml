@@ -1,4 +1,4 @@
-name: NPM Build
+name: Build and Package Extension
 
 on:
   pull_request:
@@ -18,4 +18,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Build and package the extension into a zip artifact 
-        run: bun run package:chrome
+        run: bun run package
+        env:
+          FIREFOX_EXT_ID: ${{ secrets.FIREFOX_EXT_ID }}
+        

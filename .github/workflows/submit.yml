@@ -14,12 +14,13 @@ jobs:
         run: |
           bun install --frozen-lockfile
           bun package:chrome 
-          # bun package:firefox
-        # env:
-        #   FIREFOX_EXT_ID: ${{ secrets.FIREFOX_EXT_ID }}
+          bun package:firefox
+        env:
+          FIREFOX_EXT_ID: ${{ secrets.FIREFOX_EXT_ID }}
+
       - name: Browser Platform Publish
         uses: PlasmoHQ/bpp@v3.8.0
         with:
           keys: ${{ secrets.SUBMIT_KEYS }}
           chrome-file: build/chrome-mv3-prod.zip
-          # firefox-file: build/firefox-mv3-prod.zip
+          firefox-file: build/firefox-mv3-prod.zip
