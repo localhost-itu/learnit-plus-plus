@@ -5,15 +5,11 @@ import FullCalendar from "@fullcalendar/react"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import { useEffect, useRef, useState } from "react"
 
-import { getCachedScrollbarEvents, getScrollbarEvents } from "~scrollbar/partyLoader"
+import { getCachedScrollbarEvents } from "~scrollbar/partyLoader"
 
 import { useCalendarSettings } from "./calendarHooks"
 import { formatEvent } from "./EventFormatter"
-import {
-  getCachedMoodleMonth,
-  mapMonthlyToFullCalendar
-} from "./eventsources/moodle"
-import { fail } from "assert"
+import { getCachedMoodleEvents } from "./eventsources/moodle"
 
 const studentCouncilEvents = {
   url: "https://studentcouncil.dk/subscribe/all.ics",
@@ -87,7 +83,12 @@ const CalendarView = ({ toggleView }: { toggleView: () => void }) => {
     }
     setSettingsLoaded(tmpSettingsLoaded)
   }, [settings, isLoadingSettings])
-  console.log('CalendarView ext chrome', !!(window.chrome && (window as any).chrome.storage), 'runtime id', (window as any).chrome?.runtime?.id)
+  console.log(
+    "CalendarView ext chrome",
+    !!(window.chrome && (window as any).chrome.storage),
+    "runtime id",
+    (window as any).chrome?.runtime?.id
+  )
 
   return (
     <>
@@ -180,40 +181,28 @@ const CalendarView = ({ toggleView }: { toggleView: () => void }) => {
               }),
               settings.showStudentCouncil && studentCouncilEvents,
               settings.showScrollbar && {
-                events: async (
-                  info,
-                  success,
-                  failure
-                ) => {
-                  const events = await getCachedScrollbarEvents({
-                    start: info.start,
-                    end: info.end
-                  })
-                  console.log('fetched scrollbar events', events)
-                  
-                  if (events.length !== 0) {
-                    // try a direct fetch if cache miss
+                events: async (info, success, failure) => {
+                  try {
+                    const events = await getCachedScrollbarEvents({
+                      start: info.start,
+                      end: info.end
+                    })
                     success(events)
+                  } catch (err) {
+                    console.error("Failed to load scrollbar events", err)
+                    failure(err)
                   }
-
-                  failure(new Error("No scrollbar events were found"))
                 },
                 color: "#fff319cc",
                 textColor: getConstrastColor("#fff319cc")
               },
               {
                 events: async (fetchInfo, success, failure) => {
-                  console.log('events ext chrome', !!(window.chrome && (window as any).chrome.storage), 'runtime id', (window as any).chrome?.runtime?.id)
-                  
                   try {
-                    const y = fetchInfo.start.getFullYear()
-                    const m = fetchInfo.start.getMonth() + 1 // JS months 0–11 → Moodle needs 1–12
-                    const monthData = await getCachedMoodleMonth({
-                      year: y,
-                      month: m
+                    const events = await getCachedMoodleEvents({
+                      start: fetchInfo.start,
+                      end: fetchInfo.end
                     })
-                    const events = mapMonthlyToFullCalendar(monthData)
-                    console.log('fetched moodle month events', events)
                     success(events)
                   } catch (err) {
                     console.error(err)

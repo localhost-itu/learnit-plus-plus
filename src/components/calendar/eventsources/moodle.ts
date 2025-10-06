@@ -1,7 +1,7 @@
 // Centralized helpers for fetching and mapping Moodle events via AJAX
 // Modern, readable utilities intended for use by calendar components
 
-import type { DateInput, EventInput } from "@fullcalendar/core"
+import type { EventInput } from "@fullcalendar/core"
 
 import { createCachedFetcher } from "./cache"
 
@@ -52,6 +52,13 @@ export async function fetchMoodleSubmissions({
 
 // Fetch a month's calendar grid — includes events by day
 export async function fetchMoodleMonth(year: number, month: number) {
+  console.log(
+    "fetchMoodleMonth ext chrome",
+    !!(window.chrome && (window as any).chrome.storage),
+    "runtime id",
+    (window as any).chrome?.runtime?.id
+  )
+
   const body = JSON.stringify([
     {
       index: 0,
@@ -74,18 +81,46 @@ export async function fetchMoodleMonth(year: number, month: number) {
   return (data[0] as any).data // contains eventsbyday, month, year, etc.
 }
 
+function enumerateMonthsInRange(start: Date, end: Date) {
+  const months: { year: number; month: number }[] = []
+  let cursor = new Date(start.getFullYear(), start.getMonth(), 1)
+  const last = new Date(end.getFullYear(), end.getMonth(), 1)
+  while (cursor.getTime() <= last.getTime()) {
+    months.push({ year: cursor.getFullYear(), month: cursor.getMonth() + 1 })
+    cursor.setMonth(cursor.getMonth() + 1, 1)
+  }
+  return months
+}
+
+function dedupeByIdentity(events: EventInput[]) {
+  const seen = new Set<string>()
+  const out: EventInput[] = []
+  for (const event of events) {
+    const key = `${event.id ?? ""}|${event.start ?? ""}|${event.end ?? ""}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(event)
+  }
+  return out
+}
+
 // Cached wrappers
-// Cache a month response by year-month for e.g. 2 minutes; allow stale serve up to 10 minutes
-export const getCachedMoodleMonth = createCachedFetcher<
-  { year: number; month: number },
-  any
->({
-  source: "moodle:month",
+export const getCachedMoodleEvents = createCachedFetcher({
+  source: "moodle",
   ttlMs: 60 * 60 * 1000, // 1 hour
   staleWhileRevalidateMs: 6 * 60 * 60 * 1000, // 6 hours
-  buildKey: ({ year, month }) => `${year}-${month}`,
-  fetcher: ({ year, month }) => fetchMoodleMonth(year, month),
-  storage: "sessionStorage"
+  grouping: "day",
+  storage: "sessionStorage",
+  fetcher: async ({ start, end }) => {
+    const months = enumerateMonthsInRange(start, end)
+    const monthPayloads = await Promise.all(
+      months.map(({ year, month }) => fetchMoodleMonth(year, month))
+    )
+    const allEvents = monthPayloads.flatMap((data) =>
+      mapMonthlyToFullCalendar(data)
+    )
+    return dedupeByIdentity(allEvents)
+  }
 })
 
 // Map Moodle raw events from "action events" to FullCalendar EventInput

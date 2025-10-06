@@ -1,3 +1,4 @@
+import type { EventInput } from "@fullcalendar/core"
 import { initializeApp } from "firebase/app"
 import {
   collection,
@@ -7,8 +8,8 @@ import {
   Timestamp,
   where
 } from "firebase/firestore/lite"
+
 import { createCachedFetcher } from "~components/calendar/eventsources/cache"
-import type { DateInput, EventInput } from "@fullcalendar/core"
 
 // Firebase config for "scrollweb" project
 // (public info, safe to expose in client code)
@@ -26,35 +27,27 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 const db = getFirestore(app)
 
-// Fetch events from Firestore, caching results for 5 minutes
-export const getCachedScrollbarEvents = createCachedFetcher<
-  { start: Date; end: Date },
-  EventInput[]
->({
+// Fetch events from Firestore, caching results for 12 hours
+export const getCachedScrollbarEvents = createCachedFetcher({
   source: "scrollbar",
   ttlMs: 12 * 60 * 60 * 1000, // 12 hours
   staleWhileRevalidateMs: 24 * 60 * 60 * 1000, // 24 hours
-  buildKey: ({ start, end }) => {
-    return `${start.toISOString().slice(0, 10)}_${end
-      .toISOString()
-      .slice(0, 10)}`
-  },
-  fetcher: async ({ start, end }) => {
-    return getScrollbarEvents(start)
-  },
+  grouping: "week",
   storage: "sessionStorage",
-  maxEntries: 20 // only keep 20 entries in persistent storage
+  maxEntries: 20,
+  fetcher: ({ start, end }) => getScrollbarEvents(start, end)
 })
 
-export async function getScrollbarEvents(from: Date = new Date()): Promise<EventInput[]> {
+export async function getScrollbarEvents(
+  from: Date = new Date(),
+  to: Date = new Date()
+): Promise<EventInput[]> {
   const eventsCollection = collection(db, "env/prod/events")
-  const year = from.getFullYear()
-  const month = from.getMonth()
-  const monthStart = new Date(year, month, 1, 0, 0, 0, 0)
-  const nextMonthStart = new Date(year, month + 1, 1, 0, 0, 0, 0)
+  const fromMonthStart = new Date(from.getFullYear(), from.getMonth(), 1)
+  const afterToMonth = new Date(to.getFullYear(),to.getMonth() + 1, 1)
 
-  const startTs = Timestamp.fromDate(monthStart)
-  const endTs = Timestamp.fromDate(nextMonthStart)
+  const startTs = Timestamp.fromDate(fromMonthStart)
+  const endTs = Timestamp.fromDate(afterToMonth)
 
   const eventsQuery = query(
     eventsCollection,
@@ -79,12 +72,13 @@ export async function getScrollbarEvents(from: Date = new Date()): Promise<Event
 
   console.log("Scrollbar events", newEvents)
 
-  return newEvents.map((event) => {
-    return {
+  return newEvents
+    .filter((event) => event.published)
+    .map((event) => ({
+      id: `${event.start.toMillis()}-${event.displayName}`,
       title: event.displayName,
       start: event.start.toDate().toISOString(),
       end: event.end.toDate().toISOString(),
       url: "https://www.erdetfredag.dk/"
-    }
-  })
+    }))
 }
