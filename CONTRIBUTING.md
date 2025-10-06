@@ -18,6 +18,7 @@ All types of contributions are encouraged and valued. See the [Table of Contents
 - [Setting Up the Development Environment](#setting-up-the-development-environment)
 - [Making Changes](#making-changes)
 - [Style guides](#style-guides)
+  - [Moodle API testing site:](#moodle-api-testing-site)
 
 ## I Have a Question
 
@@ -187,3 +188,7 @@ We use prettier to ensure the style guide
 ## Attribution
 
 This guide is based on the **contributing-gen**. [Make your own](https://github.com/bttger/contributing-gen)!
+
+### Moodle API testing site:
+
+You can use the Moodle demo site to API calls: [sandbox.moodledemo.net](https://sandbox.moodledemo.net/admin/webservice/documentation.php#)

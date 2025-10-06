@@ -40,7 +40,7 @@ export const getCachedScrollbarEvents = createCachedFetcher<
       .slice(0, 10)}`
   },
   fetcher: async ({ start, end }) => {
-    return getScrollbarEvents()
+    return getScrollbarEvents(start)
   },
   storage: "sessionStorage",
   maxEntries: 20 // only keep 20 entries in persistent storage
@@ -48,8 +48,19 @@ export const getCachedScrollbarEvents = createCachedFetcher<
 
 export async function getScrollbarEvents(from: Date = new Date()): Promise<EventInput[]> {
   const eventsCollection = collection(db, "env/prod/events")
-  const oneDayAgo = Timestamp.fromMillis(Date.now() - 24 * 60 * 60 * 1000); // 1 day ago
-  const eventsQuery = query(eventsCollection, where("start", ">=", oneDayAgo))
+  const year = from.getFullYear()
+  const month = from.getMonth()
+  const monthStart = new Date(year, month, 1, 0, 0, 0, 0)
+  const nextMonthStart = new Date(year, month + 1, 1, 0, 0, 0, 0)
+
+  const startTs = Timestamp.fromDate(monthStart)
+  const endTs = Timestamp.fromDate(nextMonthStart)
+
+  const eventsQuery = query(
+    eventsCollection,
+    where("start", ">=", startTs),
+    where("start", "<", endTs)
+  )
 
   const querySnapshot = await getDocs(eventsQuery)
 
@@ -71,8 +82,8 @@ export async function getScrollbarEvents(from: Date = new Date()): Promise<Event
   return newEvents.map((event) => {
     return {
       title: event.displayName,
-      start: event.start.toDate(),
-      end: event.end.toDate(),
+      start: event.start.toDate().toISOString(),
+      end: event.end.toDate().toISOString(),
       url: "https://www.erdetfredag.dk/"
     }
   })

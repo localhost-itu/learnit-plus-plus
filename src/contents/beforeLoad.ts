@@ -40,7 +40,7 @@ async function loadCurrentThemeSettings() {
   const localTheme = await chrome.storage.local
     .get("theme")
     .then((res) => res.theme)
-    .catch(() => null)
+    .catch((err) => console.error("Failed to get theme from storage", err))
 
   const theme = getTheme(localTheme)
   currentTheme = theme

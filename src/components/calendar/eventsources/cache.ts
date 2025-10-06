@@ -17,87 +17,107 @@ function fullKey(source: string, key: string) {
   return `events:${source}:${key}`
 }
 
-function getStorage(mode: CacheStorageMode) {
-  if (mode === "localStorage") return window.localStorage
-  if (mode === "sessionStorage") return window.sessionStorage
+function getStorageArea(mode: CacheStorageMode) {
+  if (mode === "localStorage") return chrome.storage.local
+  if (mode === "sessionStorage") return chrome.storage.session
   return null
 }
 
-function getFromPersistent<T>(mode: CacheStorageMode, k: string): CacheEntry<T> | undefined {
-  const store = getStorage(mode)
-  if (!store) return undefined
+async function getFromPersistent<T>(mode: CacheStorageMode, k: string): Promise<CacheEntry<T> | undefined> {
+  const area = getStorageArea(mode)
+  if (!area) return undefined
   try {
-    const raw = store.getItem(k)
-    if (!raw) return undefined
-    return JSON.parse(raw)
-  } catch {
+    // const raw = await chrome.storage.session.get(k).then((res) => res[k])
+    const raw = await area.get(k).then((res) => res[k])
+    console.log('getFromPersistent', { mode, k, raw })
+    // raw should already be the stored object (you should store the CacheEntry object directly)
+    return (raw as CacheEntry<T> | undefined) ?? undefined
+  } catch (err) {
+    console.warn('storage get failed', err)
     return undefined
   }
 }
 
-function setToPersistent<T>(mode: CacheStorageMode, k: string, entry: CacheEntry<T>) {
-  const store = getStorage(mode)
-  if (!store) return
+async function setToPersistent<T>(mode: CacheStorageMode, k: string, entry: CacheEntry<T>) {
+  const area = getStorageArea(mode)
+  if (!area) return
   try {
-    store.setItem(k, JSON.stringify(entry))
-  } catch {
+    await area.set({ [k]: entry })
+    const test = await area.get(k).then((res) => res[k])
+  } catch (e) {
     // best effort; ignore quota/serialization issues handled by caller
-    throw new Error("PERSIST_FAIL")
+    throw new Error("PERSIST_FAIL", { cause: e })
   }
 }
 
-function listSourceKeys(mode: CacheStorageMode, source: string): string[] {
-  const store = getStorage(mode)
-  if (!store) return []
+async function listSourceKeys(mode: CacheStorageMode, source: string): Promise<string[]> {
+  const area = getStorageArea(mode)
+  if (!area) return []
   const prefix = `events:${source}:`
+  
   const keys: string[] = []
-  for (let i = 0; i < store.length; i++) {
-    const key = store.key(i)
+  for (const key of await area.getKeys()) {
     if (key && key.startsWith(prefix)) keys.push(key)
   }
   return keys
 }
 
-function tryTrimPersistent(mode: CacheStorageMode, source: string, keep: number) {
+async function tryTrimPersistent(mode: CacheStorageMode, source: string, keep: number) {
   // Remove oldest entries for this source until length <= keep
-  const store = getStorage(mode)
-  if (!store) return
-  const keys = listSourceKeys(mode, source)
-  const withTs = keys
-    .map((k) => {
-      const e = getFromPersistent<any>(mode, k)
-      return { k, ts: e?.ts ?? 0 }
-    })
-    .sort((a, b) => b.ts - a.ts) // newest first
+  const area = getStorageArea(mode)
+  if (!area) return
+  const keys = await listSourceKeys(mode, source)
+
+  let withTs: { k: string; ts: number }[] = []
+  try {
+    // Fetch all keys in one call instead of one-by-one
+    const all = await area.get(keys)
+    for (const k of keys) {
+      const raw = (all as Record<string, unknown>)[k]
+      const e = raw as CacheEntry<any> | undefined
+      withTs.push({ k, ts: e?.ts ?? 0 })
+    }
+  } catch (err) {
+    // Fallback to per-key reads if bulk get fails
+    for (const k of keys) {
+      try {
+        const raw = await area.get(k).then((v: any) => v?.[k])
+        const e = raw as CacheEntry<any> | undefined
+        withTs.push({ k, ts: e?.ts ?? 0 })
+      } catch {
+        withTs.push({ k, ts: 0 })
+      }
+    }
+  }
+  withTs = withTs.sort((a, b) => b.ts - a.ts) // newest first
+
   if (withTs.length <= keep) return
   for (const { k } of withTs.slice(keep)) {
     try {
-      store.removeItem(k)
+      area.remove(k)
     } catch {
       // ignore
     }
   }
 }
 
-export function clearCache(source?: string) {
-  if (!source) {
-    memoryStore.clear()
-    return
-  }
-  const prefix = `events:${source}:`
-  for (const k of Array.from(memoryStore.keys())) {
+export async function clearCalendarCache() {
+  memoryStore.clear()
+  const prefix = `events:`
+  for (const k of memoryStore.keys()) {
     if (k.startsWith(prefix)) memoryStore.delete(k)
   }
+
   // purge both localStorage and sessionStorage
   for (const mode of ["localStorage", "sessionStorage"] as const) {
-    const store = getStorage(mode)
-    if (!store) continue
+    const area = getStorageArea(mode)
+    if (!area) continue
 
     try {
       // iterate backwards to be safe when removing
-      for (let i = store.length - 1; i >= 0; i--) {
-        const key = store.key(i)
-        if (key && key.startsWith(prefix)) store.removeItem(key)
+      const keys = await area.getKeys()
+      for (const key of keys) {
+        if (key && key.startsWith(prefix)) area.remove(key)
       }
     } catch {
       // ignore
@@ -123,20 +143,20 @@ export function createCachedFetcher<P, R>(opts: {
     staleWhileRevalidateMs = 0,
     maxEntries = 24
   } = opts
-
-  const getEntry = <T,>(k: string): CacheEntry<T> | undefined => {
+  const getEntry = async <T,>(k: string): Promise<CacheEntry<T> | undefined> => {
     if (storage === "memory") return memoryStore.get(k)
-    return getFromPersistent<T>(storage, k)
+    return await getFromPersistent<T>(storage, k)
   }
-  const setEntry = <T,>(k: string, entry: CacheEntry<T>) => {
+
+  const setEntry = async <T,>(k: string, entry: CacheEntry<T>) => {
     if (storage === "memory") return memoryStore.set(k, entry)
     try {
-      setToPersistent<T>(storage, k, entry)
+      await setToPersistent<T>(storage, k, entry)
     } catch {
       // Quota or serialization error: trim and retry once
-      tryTrimPersistent(storage, source, Math.max(1, Math.floor(maxEntries * 0.9)))
+      await tryTrimPersistent(storage, source, Math.max(1, Math.floor(maxEntries * 0.9)))
       try {
-        setToPersistent<T>(storage, k, entry)
+        await setToPersistent<T>(storage, k, entry)
       } catch {
         // give up persisting
       }
@@ -151,7 +171,7 @@ export function createCachedFetcher<P, R>(opts: {
     const inflightExisting = inFlight.get(inflightKey)
     if (inflightExisting) return inflightExisting as Promise<R>
 
-    const entry = getEntry<R>(k)
+    const entry = await getEntry<R>(k)
     if (entry) {
       const age = now - entry.ts
       if (age <= ttlMs) {
