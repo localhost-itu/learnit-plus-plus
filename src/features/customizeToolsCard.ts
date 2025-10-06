@@ -8,11 +8,16 @@ export async function makeNewToolsCard() {
   // @ts-ignore
   const toolsCard: HTMLElement = document.getElementsByClassName('tool_container')[0];
   if (!toolsCard) return;
+  const parent = toolsCard.parentElement;
+  if (parent) {
+    parent.classList.remove("no-overflow");
+    parent.style.overflow = 'hidden';
+  }
 
   toolsCard.style.display = 'grid';
-  toolsCard.style.gridTemplateColumns = 'repeat(auto-fit, minmax(127px, 1fr))';
+  // toolsCard.style.gridTemplateColumns = 'repeat(auto-fit, minmax(127px, 1fr))';
   toolsCard.style.padding = '0';
-  toolsCard.style.gap = '0.7rem';
+  toolsCard.style.gap = '0.4rem';
   
   const toolsType = document.getElementById('instance-118820-header');
   if (toolsType && toolsType.innerText === 'Teacher Tools') { // 'Teacher Tools'
