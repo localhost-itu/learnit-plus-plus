@@ -5,7 +5,8 @@
 
 import type { EventInput } from "@fullcalendar/core"
 
-export type CacheStorageMode = "memory" | "localStorage" | "sessionStorage"
+type PersistentStorage = "localStorage" // | "sessionStorage" // sessionStorage disabled for now due to quota issues
+export type CacheStorageMode = "memory" | PersistentStorage 
 
 type CacheEntry<T> = {
   data: T
@@ -21,7 +22,7 @@ function fullKey(source: string, key: string) {
 
 function getStorageArea(mode: CacheStorageMode) {
   if (mode === "localStorage") return chrome.storage.local
-  if (mode === "sessionStorage") return chrome.storage.session
+  // if (mode === "sessionStorage") return chrome.storage.session
   return null
 }
 
@@ -32,10 +33,7 @@ async function getFromPersistent<T>(
   const area = getStorageArea(mode)
   if (!area) return undefined
   try {
-    // const raw = await chrome.storage.session.get(k).then((res) => res[k])
     const raw = await area.get(k).then((res) => res[k])
-    console.log("getFromPersistent", { mode, k, raw })
-    // raw should already be the stored object (you should store the CacheEntry object directly)
     return (raw as CacheEntry<T> | undefined) ?? undefined
   } catch (err) {
     console.warn("storage get failed", err)
@@ -125,7 +123,8 @@ export async function clearCalendarCache() {
   }
 
   // purge both localStorage and sessionStorage
-  for (const mode of ["localStorage", "sessionStorage"] as const) {
+  // add PersistentStorage strings to the array if needed
+  for (const mode of ["localStorage"] as const) {
     const area = getStorageArea(mode)
     if (!area) continue
 

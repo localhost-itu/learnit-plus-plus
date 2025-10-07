@@ -33,7 +33,7 @@ export const getCachedScrollbarEvents = createCachedFetcher({
   ttlMs: 12 * 60 * 60 * 1000, // 12 hours
   staleWhileRevalidateMs: 24 * 60 * 60 * 1000, // 24 hours
   grouping: "week",
-  storage: "sessionStorage",
+  storage: "localStorage",
   maxEntries: 20,
   fetcher: ({ start, end }) => getScrollbarEvents(start, end)
 })

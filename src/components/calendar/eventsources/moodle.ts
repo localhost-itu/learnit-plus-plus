@@ -110,7 +110,7 @@ export const getCachedMoodleEvents = createCachedFetcher({
   ttlMs: 60 * 60 * 1000, // 1 hour
   staleWhileRevalidateMs: 6 * 60 * 60 * 1000, // 6 hours
   grouping: "day",
-  storage: "sessionStorage",
+  storage: "localStorage",
   fetcher: async ({ start, end }) => {
     const months = enumerateMonthsInRange(start, end)
     const monthPayloads = await Promise.all(

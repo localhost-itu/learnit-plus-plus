@@ -2,6 +2,9 @@
 import { DarkModeState, getTheme, type theme } from "~/styles/main"
 export {}
 
+// In case we need to access storage from content scripts in the future (injected components for example)
+// chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
+
 let settings: {
   darkMode: boolean
   theme: theme | null
