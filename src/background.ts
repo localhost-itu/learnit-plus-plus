@@ -4,6 +4,15 @@ export {}
 
 // In case we need to access storage from content scripts in the future (injected components for example)
 // chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
+console.log("Background script turning on...")
+
+self.addEventListener("install", (event) => {
+  console.log("LearnIT++ Service worker installed", event)
+})
+
+self.addEventListener("activate", (event) => {
+  console.log("LearnIT++ Service worker activated", event)
+})
 
 let settings: {
   darkMode: boolean
@@ -13,15 +22,25 @@ let settings: {
   theme: null
 }
 
-function updateSettings() {
-  chrome.storage.local.get(["darkMode", "theme"], (res) => {
-    if (res.darkMode !== undefined) settings.darkMode = res.darkMode
-    settings.theme = getTheme(res.theme)
-  })
+async function updateSettings() {
+  const s = await chrome.storage.local.get(["darkMode", "theme"])
+  if (s.darkMode !== undefined) settings.darkMode = s.darkMode
+  settings.theme = getTheme(s.theme)
+  console.log("Fetched settings:", { ...settings })
 }
 
 function injectCurrentTheme(tabs: number[], oldTheme: theme) {
-  if (tabs.length === 0) return
+  if (tabs.length === 0) {
+    console.warn("No tabs to inject theme into")
+    return
+  }
+
+  if (!settings.theme) {
+    console.error("Theme is not avaliable, aborting theme injection")
+    return
+  }
+  console.log("Injecting theme into tabs", tabs, settings.theme)
+
   if (oldTheme) {
     for (const tab of tabs) {
       chrome.scripting.removeCSS({
@@ -31,15 +50,11 @@ function injectCurrentTheme(tabs: number[], oldTheme: theme) {
     }
   }
 
-  const theme = settings.theme
-  if (!theme) return
-
   for (const tab of tabs) {
     const injectedTheme: chrome.scripting.CSSInjection = {
       target: { tabId: tab },
-      css: theme.css
+      css: settings.theme.css
     }
-
     chrome.scripting.insertCSS(injectedTheme)
   }
 }
@@ -51,7 +66,11 @@ function shoudAddDarkMode() {
   return settings.theme.darkModeState === DarkModeState.OPTIONAL && settings.darkMode
 }
 
-function initialInjection(tabId: number) {
+async function initialInjection(tabId: number) {
+  if (!settings.theme) {
+    await updateSettings()
+    console.error("Theme was not avaliable during initial injection. An update was attempted and settings are now:", { ...settings })
+  }
   if (settings.darkMode) {
     chrome.scripting.insertCSS({
       target: { tabId: tabId },
@@ -92,6 +111,7 @@ chrome.webNavigation.onBeforeNavigate.addListener((details) => {
 chrome.webNavigation.onCommitted.addListener((details) => {
   if (details.frameId !== 0) return
   if (details.url && details.url.includes("learnit")) {
+    console.log("LearnIT++ detected navigation to learnit, injecting", details)
     initialInjection(details.tabId)
   }
 }, filter)
@@ -106,7 +126,9 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
     settings.theme = getTheme(changes.theme.newValue)
 
     chrome.tabs.query({ url: "https://learnit.itu.dk/*" }, (tabs) => {
-      injectCurrentTheme(tabs.map((tab) => tab.id), oldTheme)
+      const validTabs = tabs.filter(tab => tab.status != "unloaded")
+      console.log("Theme changed, injecting into tabs", validTabs, "old theme:", oldTheme, "new theme:", settings.theme)
+      injectCurrentTheme(validTabs.map((tab) => tab.id), oldTheme)
     })
   }
   if (changes.darkMode) {
@@ -114,4 +136,5 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
   }
 })
 
+console.log("Fetching initial settings")
 updateSettings()

@@ -31,26 +31,26 @@
     "@fullcalendar/timegrid": "^6.1.19",
     "@plasmohq/messaging": "^0.7.2",
     "@plasmohq/storage": "^1.15.0",
-    "caniuse-lite": "^1.0.30001748",
-    "firebase": "^12.3.0",
+    "caniuse-lite": "^1.0.30001750",
+    "firebase": "^12.4.0",
     "ical.js": "1.4.0",
     "plasmo": "0.90.5",
-    "react": "19.1.1",
-    "react-dom": "19.1.1",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
     "swapy": "^1.0.5"
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "4.7.0",
-    "@tailwindcss/postcss": "^4.1.13",
-    "@types/chrome": "0.1.12",
-    "@types/node": "24.5.2",
-    "@types/react": "19.1.13",
-    "@types/react-dom": "19.1.9",
+    "@tailwindcss/postcss": "^4.1.14",
+    "@types/chrome": "0.1.24",
+    "@types/node": "24.7.2",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.1",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
     "prettier": "3.6.2",
     "tailwindcss": "3",
-    "typescript": "5.9.2"
+    "typescript": "5.9.3"
   },
   "manifest": {
     "browser_specific_settings": {
