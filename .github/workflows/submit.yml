@@ -21,6 +21,14 @@ jobs:
         env:
           FIREFOX_EXT_ID: ${{ secrets.FIREFOX_EXT_ID }}
 
+      - name: Zip source files for firefox
+        run: |
+          $dirs = Get-ChildItem * -Directory | ? { $_.BaseName -in "src", "assets" }
+          $files = Get-ChildItem . -File
+          $destination = "build/source.zip"
+          # compress
+          Compress-Archive -Path ($files+$dirs) -DestinationPath $destination -CompressionLevel Fastest
+
       - name: Browser Platform Publish
         id: publish
         uses: PlasmoHQ/bpp@v3.8.0
@@ -28,6 +36,7 @@ jobs:
           keys: ${{ secrets.SUBMIT_KEYS }}
           chrome-file: build/chrome-mv3-prod.zip
           firefox-file: build/firefox-mv3-prod.zip
+          source: build/source.zip
 
       - name: Extract version from package.json
         id: get_version
