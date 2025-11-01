@@ -167,20 +167,29 @@ html.dark .moodle-dialogue-base .closebutton::after {
 }
 
 /* All submissions view */
-html.dark .path-mod-assign .gradingtable tr.unselectedrow td,
-html.dark .table-striped tbody tr:nth-of-type(odd),
-html.dark .secondary-navigation {
+html.dark .path-mod-assign .generaltable tr.unselectedrow td, 
+html.dark .secondary-navigation /* the navigation bar */
+ {
   background-color: inherit;
-}
-
-html.dark .groupselect-table tbody tr:nth-of-type(even) {
-    background-color: var(--card-bg-color-alt);
 }
 
 html.dark body.path-mod-quiz .gradedattempt,
 body.path-mod-quiz table tbody tr.gradedattempt > td {
   border-color: var(--card-border-color) !important;
-  background-color: inherit !important;
+  background-color: var(--card-sub-bg-color) !important;
+}
+
+html.dark table.generaltable thead th.c2,
+html.dark body.path-mod-quiz .generaltable tbody tr:not(.gradedattempt) td.cell.c2 {
+    background-color: inherit;
+}
+
+html.dark .generaltable tbody tr:nth-of-type(odd) {
+  background-color: var(--card-bg-color-alt);
+}
+
+html.dark .generaltable tbody tr:nth-of-type(even) {
+  background-color: var(--card-bg-color);
 }
 
 /* Link focus fix */
@@ -360,15 +369,21 @@ html.dark .que .info {
   border: 1px solid var(--card-border-color);
 }
 
-html.dark .que .formulation .answer {
+html.dark .que .formulation {
   color: var(--card-title-fg-color);
   background-color: var(--card-bg-color);
   border-color: var(--card-border-color);
+  filter: drop-shadow(1px 2px 3px black);
 }
 
 /* Questionair specific */
 html.dark .qn-container {
   color: var(--page-fg-color);
+}
+
+/* Go to question buttons */
+html.dark div.qn_buttons a.qnbutton {
+  color: var(--lpp-black);
 }
 
 html.dark .qn-question {
@@ -399,6 +414,28 @@ html.dark td.selected:has(+ td.c0) {
 html.dark #page-mod-questionnaire-complete tr.raterow:hover,
 html.dark #page-mod-questionnaire-preview tr.raterow:hover {
   background-color: var(--page-bg-color);
+}
+
+/* Course page */
+/* Section title */
+html.dark .course-section .sectionname > a {
+  color: var(--page-fg-color);
+}
+
+/* Section item cards */
+html.dark .course-section .section-item {
+  background-color: var(--card-bg-color);
+  border: thin groove var(--page-border-color);
+}
+
+/* Availability info box, fx. Available from 16 December... */
+html.dark .course-section .availabilityinfo {
+  background-color: var(--card-sub-bg-color);
+}
+
+/* Course index sidebar icons */
+html.dark .courseindex-item .courseindex-cmicon .icon {
+    filter: invert(1);
 }
 
 /* Course filter icon alpha channel */

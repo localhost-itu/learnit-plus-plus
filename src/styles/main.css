@@ -473,3 +473,77 @@ h3[data-swapy-handle] {
 html #back-to-top i.fa-fw {
   height: unset;
 }
+
+
+/* Fix all courses spinner */
+/* Hide original loading image */
+#frontend_loading .coursebase-frontend-loading > img {
+  display: none;
+}
+
+/* Center the loader when visible */
+#frontend_loading:not([style*="display: none"]) {
+  display: grid;
+  place-items: center;
+  /* min-block-size: 120px; */
+}
+
+/* Text + dot/bar loader (replaces ring spinner) */
+#frontend_loading .coursebase-frontend-loading {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  border: 3px solid;
+  border-color: var(--page-fg-color) var(--page-fg-color) transparent transparent;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+
+  /* Fix broken padding */
+  padding: 0;
+}
+
+#frontend_loading .coursebase-frontend-loading::before,
+#frontend_loading .coursebase-frontend-loading::after {
+  content: '';  
+  box-sizing: border-box;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  border: 3px solid;
+  border-color: transparent transparent #FF3D00 #FF3D00;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  box-sizing: border-box;
+  animation: rotationBack 0.5s linear infinite;
+  transform-origin: center center;
+}
+
+#frontend_loading .coursebase-frontend-loading::before {
+  width: 32px;
+  height: 32px;
+  border-color: var(--page-fg-color) var(--page-fg-color) transparent transparent;
+  animation: rotation 1.5s linear infinite;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes rotationBack {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
+}
