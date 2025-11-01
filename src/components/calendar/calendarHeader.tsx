@@ -11,7 +11,7 @@ const CalendarHeader = ({ toggleView }: { toggleView: () => void }) => {
         alignItems: "center",
         marginBottom: ".5rem"
       }}>
-      <h5 className="card-title d-block m-0">Calendar</h5>
+      <h3 className="card-title d-block m-0">Calendar</h3>
       <div
         style={{
           display: "flex",

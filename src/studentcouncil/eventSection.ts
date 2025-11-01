@@ -11,10 +11,10 @@ export async function addStudentConcileEvents() {
   const header = document.createElement("div")
   header.style.display = "flex"
   header.style.justifyContent = "space-between"
-  const h5 = document.createElement("h5")
-  h5.id = "instance-118819-header"
-  h5.className = "card-title d-inline"
-  h5.textContent = "Student Council Events"
+  const h3 = document.createElement("h3")
+  h3.id = "instance-118819-header"
+  h3.className = "card-title d-inline"
+  h3.textContent = "Student Council Events"
 
   const cardTextDiv = document.createElement("div")
   cardTextDiv.className = "card-text content"
@@ -45,7 +45,7 @@ export async function addStudentConcileEvents() {
     }
   }
 
-  header.appendChild(h5)
+  header.appendChild(h3)
   div.appendChild(header)
   div.appendChild(cardTextDiv)
 

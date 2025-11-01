@@ -21,6 +21,8 @@ export function initializeDashboardSwappy() {
     blockRegion.querySelectorAll<HTMLElement>(SELECTORS.sections)
   )
 
+  console.log("Swapy | Found sections:", sections)
+
   // Assign slots and items
   sections.forEach((section, idx) => {
     section.setAttribute("data-swapy-slot", String(idx))
@@ -48,7 +50,7 @@ export function initializeDashboardSwappy() {
 
   // add handles to the sections
   Array.from(blockRegion.getElementsByClassName("card-title")).forEach((el) => {
-    console.log("Adding handle to", el)
+    console.log("Swapy: Adding handle to", el)
     el.setAttribute("data-swapy-handle", "")
   })
 

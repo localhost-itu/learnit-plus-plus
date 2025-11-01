@@ -466,7 +466,16 @@ html .stretched-link::after {
 
 /* Swapy cursor */
 h3[data-swapy-handle] {
+  cursor: move; /* fallback if grab cursor is unsupported */
   cursor: grab;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+}
+
+h3[data-swapy-handle]:active {
+  cursor: grabbing;
+  cursor: -moz-grabbing;
+  cursor: -webkit-grabbing;
 }
 
 /* Fix back to top icon being off center */
