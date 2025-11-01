@@ -99,11 +99,11 @@ function getEventDom(event: EventData) {
       event.description.length - 9
     )
   }
-  if (event.description.length < 100) {
+  if (event.description.length < 150) {
     description.textContent = event.description
     expandedText.appendChild(description)
   } else {
-    description.textContent = event.description.substring(0, 100) + "..."
+    description.textContent = event.description.substring(0, 150) + "..."
     const readMoreButton = document.createElement("button")
     readMoreButton.className = "btn btn-custom"
     readMoreButton.textContent = "Read more"
@@ -114,7 +114,7 @@ function getEventDom(event: EventData) {
         readMoreButton.textContent = "Read less"
       } else {
         expandedText.classList.add("hide-content")
-        description.textContent = event.description.substring(0, 100) + "..."
+        description.textContent = event.description.substring(0, 150) + "..."
         readMoreButton.textContent = "Read more"
       }
     })

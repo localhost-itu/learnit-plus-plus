@@ -28,6 +28,7 @@ jobs:
           $destination = "build/source.zip"
           # compress
           Compress-Archive -Path ($files+$dirs) -DestinationPath $destination -CompressionLevel Fastest
+          if (-not (Test-Path $destination)) { Write-Error "$destination not found"; exit 0 }
 
       - name: Browser Platform Publish
         id: publish

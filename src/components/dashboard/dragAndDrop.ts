@@ -46,6 +46,12 @@ export function initializeDashboardSwappy() {
     itemEl.setAttribute("data-swapy-item", blockId)
   })
 
+  // add handles to the sections
+  Array.from(blockRegion.getElementsByClassName("card-title")).forEach((el) => {
+    console.log("Adding handle to", el)
+    el.setAttribute("data-swapy-handle", "")
+  })
+
   // Load saved layout and apply before enabling interactions
   loadLayout().then((saved) => {
     const effectiveMap = saved ?? buildDefaultMap(blockRegion)
@@ -60,7 +66,7 @@ export function initializeDashboardSwappy() {
       animation: "dynamic",
       swapMode: "drop",
       autoScrollOnDrag: true,
-      dragOnHold: true,
+      // dragOnHold: true,
       // If supported, prefer full control:
       // manualSwap: true
     })
@@ -134,7 +140,7 @@ function applyLayoutFromMap(root: HTMLElement, map: ItemToSlotMap) {
   })
 }
 
-function loadLayout(): Promise<ItemToSlotMap | null> {
+async function loadLayout(): Promise<ItemToSlotMap> {
   return new Promise((resolve) => {
     chrome.storage.local.get(["dashboardLayout"], (res) => {
       resolve((res.dashboardLayout as ItemToSlotMap | undefined) ?? null)

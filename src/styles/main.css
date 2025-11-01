@@ -8,17 +8,23 @@ body.limitedwidth #page.drawers .main-inner {
 }
 
 /* Flex of starred courses */
-html .dashboard-card-deck.one-row {
+html div[data-region="card-deck"] {
   display: flex;
-  flex-flow: row wrap;
+  flex-flow: row wrap!important;
   overflow-x: auto;
   justify-content: space-around;
+  gap: 0.5rem;
 }
 
-/* enable four items to be in the starred card */
-.dashboard-card-deck:not(.fixed-width-cards) .dashboard-card {
-  width: unset !important;
+/* html div[data-region="card-deck"] > div {
   min-width: 150px;
+} */
+
+/* enable four items to be in the starred card */
+/* .dashboard-card-deck:not(.fixed-width-cards) .dashboard-card { */
+html div[data-region="card-deck"] > div {
+  width: unset !important;
+  min-width: 200px;
   flex: 1;
 }
 
@@ -32,10 +38,73 @@ span + div.text-truncate {
 }
 
 /* Grid Recently accessed items */
-div .dashboard-card-deck.one-row:has(a + a) {
+/* div .dashboard-card-deck.one-row:has(a + a) { */
+html div[data-region="items-list"] {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 0.3rem;
+}
+
+/* Fix icons in upcoming events */
+.icon.fa.fa-graduation-cap.fa-fw::before {
+  font-size: 27px;
+}
+
+/* Change activity icons color 
+  This is taken from their own css file called "all"
+*/
+/* :root {
+    --activityadministration: invert(45%) sepia(46%) saturate(3819%) hue-rotate(260deg) brightness(101%) contrast(87%);
+    --activityassessment: invert(39%) sepia(33%) saturate(5059%) hue-rotate(344deg) brightness(106%) contrast(101%);
+    --activitycollaboration: invert(25%) sepia(54%) saturate(6226%) hue-rotate(245deg) brightness(100%) contrast(102%);
+    --activitycommunication: invert(48%) sepia(74%) saturate(4887%) hue-rotate(11deg) brightness(102%) contrast(101%);
+    --activitycontent: invert(49%) sepia(52%) saturate(4675%) hue-rotate(156deg) brightness(89%) contrast(102%);
+    --activityinteractivecontent: invert(25%) sepia(63%) saturate(1152%) hue-rotate(344deg) brightness(94%) contrast(91%);
+} */
+
+/* .administration */
+.activityiconcontainer .icon:not(.nofilter)[title="Group self-selection"] {
+  filter: invert(45%) sepia(46%) saturate(3819%) hue-rotate(260deg)
+    brightness(101%) contrast(87%);
+}
+
+/* .assessment */
+.activityiconcontainer .icon:not(.nofilter)[title~="Assignment" i],
+.activityiconcontainer .icon:not(.nofilter)[title~="Exam"],
+.activityiconcontainer .icon:not(.nofilter)[title="Quiz"] {
+  filter: invert(39%) sepia(33%) saturate(5059%) hue-rotate(344deg)
+    brightness(106%) contrast(101%);
+}
+
+/* .collaboration */
+.activityiconcontainer .icon:not(.nofilter)[title="Forum"],
+.activityiconcontainer .icon:not(.nofilter)[title="Hot Question"] {
+  filter: invert(25%) sepia(54%) saturate(6226%) hue-rotate(245deg)
+    brightness(100%) contrast(102%);
+}
+
+/* .communication */
+.activityiconcontainer .icon:not(.nofilter)[title="Questionnaire"],
+.activityiconcontainer .icon:not(.nofilter)[title="Feedback"],
+.activityiconcontainer .icon:not(.nofilter)[title="Poll"] {
+  filter: invert(48%) sepia(74%) saturate(4887%) hue-rotate(11deg)
+    brightness(102%) contrast(101%);
+}
+
+/* .content */
+.activityiconcontainer .icon:not(.nofilter)[title="Folder"],
+.activityiconcontainer .icon:not(.nofilter)[title="Page"],
+.activityiconcontainer .icon:not(.nofilter)[title="URL"], 
+.activityiconcontainer .icon:not(.nofilter)[title="File"],
+.activityiconcontainer .icon:not(.nofilter)[title="Book"] {
+  filter: invert(49%) sepia(52%) saturate(4675%) hue-rotate(156deg)
+    brightness(89%) contrast(102%);
+}
+
+/* .interactivecontent */
+.activityiconcontainer .icon:not(.nofilter)[title="Assignment"] {
+  filter: invert(25%) sepia(63%) saturate(1152%) hue-rotate(344deg)
+    brightness(94%) contrast(91%);
 }
 
 /* reorder dashboard cards */
@@ -54,43 +123,43 @@ div .dashboard-card-deck.one-row:has(a + a) {
 }
 
 /* reorder dashboard cards */
-aside#block-region-content {
+section#block-region-content {
   display: flex;
   flex-flow: column;
 }
 
 /* Timeline card */
-aside#block-region-content section.block_timeline {
+section#block-region-content section.block_timeline {
   grid-area: timeline;
 }
 
 /* Recently accessed items card */
-aside#block-region-content section.block_recentlyaccesseditems {
+section#block-region-content section.block_recentlyaccesseditems {
   grid-area: recent;
 }
 
 /* Starred courses card */
-aside#block-region-content section.block_starredcourses {
+section#block-region-content section.block_starredcourses {
   grid-area: courses;
 }
 
 /* Upcoming events card */
-aside#block-region-content section.block_calendar_upcoming {
+section#block-region-content section.block_calendar_upcoming {
   grid-area: events;
 }
 
 /* TimeEdit */
-aside#block-region-content section.block_timeedit {
+section#block-region-content section.block_timeedit {
   grid-area: timeedit;
 }
 
 /* Student councile events */
-aside#block-region-content section.block_sc {
+section#block-region-content section.block_sc {
   grid-area: sc;
 }
 
 /* Study tools card */
-aside#block-region-content section.block_cohortspecifichtml {
+section#block-region-content section.block_cohortspecifichtml {
   grid-area: tools;
 }
 
@@ -393,4 +462,14 @@ html .stretched-link::after {
 .forumpost.unread .row.header, .path-course-view .unread, span.unread {
   border-bottom: unset;
   background-color: sandybrown;
+}
+
+/* Swapy cursor */
+h3[data-swapy-handle] {
+  cursor: grab;
+}
+
+/* Fix back to top icon being off center */
+html #back-to-top i.fa-fw {
+  height: unset;
 }

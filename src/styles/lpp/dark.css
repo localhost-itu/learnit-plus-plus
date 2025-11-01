@@ -168,9 +168,13 @@ html.dark .moodle-dialogue-base .closebutton::after {
 
 /* All submissions view */
 html.dark .path-mod-assign .gradingtable tr.unselectedrow td,
-html.dark .table-striped tbody tr:nth-of-type(2n + 1),
+html.dark .table-striped tbody tr:nth-of-type(odd),
 html.dark .secondary-navigation {
   background-color: inherit;
+}
+
+html.dark .groupselect-table tbody tr:nth-of-type(even) {
+    background-color: var(--card-bg-color-alt);
 }
 
 html.dark body.path-mod-quiz .gradedattempt,
@@ -309,6 +313,14 @@ html.dark
   background: var(--card-bg-color-alt);
 }
 
+/* Pagination button on My courses page */
+html.dark .page-item.disabled .page-link {
+  filter: brightness(0.7);
+  background-color: var(--pagination-bg-color);
+  border-color: var(--pagination-border-color);
+  color: var(--page-fg-color);
+}
+
 /* Alert info */
 div .themeboostunioninfobanner.alert.alert-info {
   background: var(--card-bg-color);
@@ -398,3 +410,9 @@ html.dark
   a.dropdown-item::before {
   color: rgba(255, 255, 255, 0.4);
 }
+
+/* not identified activity icon */
+html.dark .activityiconcontainer img.icon:not(.nofilter)[title="Activity event"] {
+  filter: invert(1)
+}
+
