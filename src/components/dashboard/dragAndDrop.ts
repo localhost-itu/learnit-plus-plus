@@ -1,4 +1,5 @@
 import { createSwapy } from "swapy"
+import { relayMessage } from "@plasmohq/messaging"
 
 // Stable identifiers
 type ItemId = string // e.g. "block_starredcourses"
@@ -67,10 +68,7 @@ export function initializeDashboardSwappy() {
     const swapy = createSwapy(blockRegion, {
       animation: "dynamic",
       swapMode: "drop",
-      autoScrollOnDrag: true,
-      // dragOnHold: true,
-      // If supported, prefer full control:
-      // manualSwap: true
+      autoScrollOnDrag: true
     })
 
     // Persist mapping on swap end
@@ -149,3 +147,20 @@ async function loadLayout(): Promise<ItemToSlotMap> {
     })
   })
 }
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponce) => {
+  console.log("Message from the background script:");
+  console.log(request.action);
+  if (request.action === "reloadDashboardLayout") {
+    console.log("Swapy: Reloading dashboard layout via message");
+    const blockRegion = document.querySelector(SELECTORS.region) as HTMLElement
+    if (!blockRegion) return
+    loadLayout().then((savedLayout) => {
+      const effectiveMap = savedLayout ?? buildDefaultMap(blockRegion)
+      applyLayoutFromMap(blockRegion, effectiveMap)
+    });
+  }
+  sendResponce({ status: "reload completed" });
+
+  return true;
+});

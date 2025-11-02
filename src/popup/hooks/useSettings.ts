@@ -100,34 +100,35 @@ export function useSettings() {
     })
   }, [settings])
 
-  const restoreDashboardLayout = useCallback(async () => {
-    const restoreKey = "dashboardLayout"
-    const backupKey = `${restoreKey}backup`
-
-    return new Promise<RestoreResult>((resolve) => {
+  const restoreDashboardLayout = useCallback(async () => {    
+    return new Promise<RestoreResult>(async (resolve) => {
+      const restoreKey = "dashboardLayout"
+      const backupKey = restoreKey + "Backup"
       try {
-        chrome.storage.local.get([backupKey], (result) => {
-          const defaultValue = result[backupKey]
-          if (defaultValue !== undefined) {
-            chrome.storage.local.set({ [restoreKey]: defaultValue }, () => {
-              if (chrome.runtime?.lastError) {
-                console.warn("restore set error", chrome.runtime.lastError)
-                resolve("error")
-                return
-              }
-              resolve("restored")
-            })
-          } else {
-            chrome.storage.local.remove([restoreKey], () => {
-              if (chrome.runtime?.lastError) {
-                console.warn("restore remove error", chrome.runtime.lastError)
-                resolve("error")
-                return
-              }
-              resolve("missing")
-            })
+        const value = await chrome.storage.local.get(backupKey).then((res) => res[backupKey])
+        if (chrome.runtime?.lastError) {
+          console.warn("restore get error", chrome.runtime.lastError)
+          resolve("error")
+          return
+        }
+        if (value !== undefined) {
+          await chrome.storage.local.set({ [restoreKey]: value })
+          if (chrome.runtime?.lastError) {
+            console.warn("restore set error", chrome.runtime.lastError)
+            resolve("error")
+            return
           }
-        })
+          resolve("restored")
+          return
+        }
+
+        await chrome.storage.local.remove(restoreKey)
+        if (chrome.runtime?.lastError) {
+          console.warn("restore remove error", chrome.runtime.lastError)
+          resolve("error")
+          return
+        }
+        resolve("missing")
       } catch (error) {
         console.warn("restore failed", error)
         resolve("error")

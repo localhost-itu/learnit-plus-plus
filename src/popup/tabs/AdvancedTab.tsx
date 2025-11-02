@@ -35,6 +35,29 @@ function DangerZone({ onResetDashboard }: DangerZoneProps) {
 
   const performReset = async () => {
     const result = await onResetDashboard()
+    if (result === "error") {
+      console.error("Dashboard layout reset failed")
+    }
+    try {
+      chrome.tabs.query({ url: "https://learnit.itu.dk/*" }, async (tabs) => {
+        tabs = tabs.filter((tab) => tab.status != "unloaded")
+        for (const tab of tabs) {
+          if (typeof tab.id === "number") {
+            const res = await chrome.tabs.sendMessage(tab.id, {
+              action: "reloadDashboardLayout"
+            })
+            console.log(
+              "dispatched reloadDashboardLayout event to content script",
+              res
+            )
+          } else {
+            console.warn("No active tab to dispatch event")
+          }
+        }
+      })
+    } catch (error) {
+      console.warn("dispatch event threw", error)
+    }
     setModalState({ type: "result", result })
   }
 
