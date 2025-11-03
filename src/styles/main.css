@@ -50,6 +50,12 @@ html div[data-region="items-list"] {
   font-size: 27px;
 }
 
+/* Fix popover header action icons color, 
+   notifications mark all as read for example */
+html .popover-region-header-actions i.icon::before {
+    color: var(--button-unnoticed-fg-color);
+}
+
 /* Change activity icons color 
   This is taken from their own css file called "all"
 */
