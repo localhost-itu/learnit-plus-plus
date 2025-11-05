@@ -19,9 +19,6 @@ const CalendarHeader = ({ toggleView }: { toggleView: () => void }) => {
           alignItems: "center",
           gap: ".5rem"
         }}>
-        {settings.icalSources.length == 0 && (
-          <p className="bold">No custom calendars setup yet!</p>
-        )}
 
         <button className="btn btn-outline-secondary" onClick={toggleView}>
           Settings

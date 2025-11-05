@@ -2,8 +2,8 @@ import { getEvents, type EventData } from "./eventLoader"
 
 export async function addStudentConcileEvents() {
   const section = document.createElement("section")
-  section.className = "block_sc block card mb-3"
-  section.setAttribute("role", "complementary")
+  section.className = "block_sc block card"
+  section.setAttribute("role", "region")
   section.setAttribute("data-block", "cohortspecifichtml")
 
   const div = document.createElement("div")
@@ -18,8 +18,10 @@ export async function addStudentConcileEvents() {
 
   const cardTextDiv = document.createElement("div")
   cardTextDiv.className = "card-text content"
-  cardTextDiv.style.display = "flex"
-  cardTextDiv.style.flexWrap = "wrap"
+  cardTextDiv.style.display = "grid"
+  cardTextDiv.style.gridTemplateColumns = "repeat(2, 1fr)"
+  cardTextDiv.style.gap = "10px"
+  cardTextDiv.style.paddingTop = "1rem"
 
   const events = await getEvents()
   if (events.length === 0) {
@@ -60,8 +62,6 @@ function getEventDom(event: EventData) {
   divCard.className = "card dashboard-card"
   divCard.setAttribute("role", "listitem")
   divCard.setAttribute("data-region", "course-content")
-  divCard.style.width = "48%"
-  divCard.style.margin = "1%"
 
   const divCardBody = document.createElement("div")
   divCardBody.className = "card-body pr-1 course-info-container"
@@ -72,12 +72,14 @@ function getEventDom(event: EventData) {
   const header = document.createElement("h5")
   header.className = "coursename mr-2"
   header.textContent = event.summary
+  header.style.margin = "0"
 
   const divMuted = document.createElement("div")
   divMuted.className = "text-muted muted d-flex mb-1 justify-content-between"
 
-  const p = document.createElement("p")
-  p.className = "text-truncate"
+  const eventDate = document.createElement("span")
+  eventDate.className = "text-truncate"
+  eventDate.style.marginBottom = "0.5rem"
 
   const date = new Date(event.dtstart)
   const weekDay = date.toLocaleDateString("en-GB", { weekday: "short" })
@@ -88,7 +90,7 @@ function getEventDom(event: EventData) {
   })
   const dateString = `${weekDay}, ${date.getDate()}. ${month}. ${time}`
 
-  p.textContent = `${dateString} | ${daysLeftString(date)}`
+  eventDate.textContent = `${dateString} | ${daysLeftString(date)}`
   const expandedText = document.createElement("div")
   expandedText.className = "expandedText hide-content"
   const description = document.createElement("p")
@@ -122,7 +124,7 @@ function getEventDom(event: EventData) {
     expandedText.appendChild(readMoreButton)
   }
   divMuted.appendChild(expandedText)
-  divMuted.appendChild(p)
+  divMuted.appendChild(eventDate)
   divTextTruncate.appendChild(header)
   divTextTruncate.appendChild(divMuted)
   divCardBody.appendChild(divTextTruncate)

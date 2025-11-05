@@ -1,7 +1,7 @@
 {
   "name": "learnit-plus-plus",
   "displayName": "LearnIT++",
-  "version": "1.6.5",
+  "version": "1.6.6",
   "description": "Improved design and functionality of the LearnIT page for IT-University of Copenhagen",
   "author": "https://github.com/localhost-itu/learnit-plus-plus/graphs/contributors",
   "repository": {
@@ -31,7 +31,7 @@
     "@fullcalendar/timegrid": "^6.1.19",
     "@plasmohq/messaging": "^0.7.2",
     "@plasmohq/storage": "^1.15.0",
-    "caniuse-lite": "^1.0.30001752",
+    "caniuse-lite": "^1.0.30001753",
     "firebase": "^12.5.0",
     "ical.js": "1.5.0",
     "plasmo": "0.90.5",
@@ -43,7 +43,7 @@
     "@ianvs/prettier-plugin-sort-imports": "4.7.0",
     "@tailwindcss/postcss": "^4.1.16",
     "@types/chrome": "0.1.27",
-    "@types/node": "24.9.2",
+    "@types/node": "24.10.0",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
     "autoprefixer": "^10.4.21",

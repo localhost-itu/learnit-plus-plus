@@ -27,8 +27,8 @@ export const getRootContainer = () =>
       let section = region.querySelector<HTMLElement>("section.block_timeedit")
       if (!section) {
         section = document.createElement("section")
-        section.className = "block_timeedit block card mb-3"
-        section.setAttribute("role", "complementary")
+        section.className = "block_timeedit block card"
+        section.setAttribute("role", "region")
         section.setAttribute("data-block", "cohortspecifichtml")
         region.appendChild(section)
       }
@@ -55,6 +55,7 @@ const CalendarRoot = () => {
   const toggleView = () => {
     setCurrentView(currentView === "calendar" ? "settings" : "calendar")
   }
+  console.log('CalendarRoot ext chrome', !!(window.chrome && (window as any).chrome.storage), 'runtime id', (window as any).chrome?.runtime?.id)
   return (
     <>
       {/* React root is on the draggable item, no extra wrapper needed */}

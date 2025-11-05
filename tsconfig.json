@@ -10,12 +10,16 @@
   ],
   "compilerOptions": {
     "paths": {
+      "assets/*": [
+        "./assets/*"
+      ],
       "~*": [
         "./src/*"
       ],
       "@Components/*": ["./src/components/*"]
     },
-    "baseUrl": ".",
+    // "module": "esnext",
+    "moduleResolution": "bundler", // overwrite plasmo default as it is deprecated
     "jsx": "react-jsx",
   }
 }

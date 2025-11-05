@@ -7,6 +7,18 @@ body.limitedwidth #page.drawers .main-inner {
   padding: 0.5rem 0.5rem !important;
 }
 
+/* margin on card titles */
+html .block h3.card-title.d-inline {
+  display: inline-block !important;
+  margin-left: 0;
+  margin-bottom: 0;
+}
+
+html div.card-text.content:not:has(.calendarwrapper) {
+  margin-top: 0 !important;
+  padding-top: 1rem;
+}
+
 /* Flex of starred courses */
 html div[data-region="card-deck"] {
   display: flex;
@@ -16,16 +28,13 @@ html div[data-region="card-deck"] {
   gap: 0.5rem;
 }
 
-/* html div[data-region="card-deck"] > div {
-  min-width: 150px;
-} */
-
 /* enable four items to be in the starred card */
 /* .dashboard-card-deck:not(.fixed-width-cards) .dashboard-card { */
 html div[data-region="card-deck"] > div {
   width: unset !important;
   min-width: 200px;
   flex: 1;
+  margin-bottom: 0 !important;
 }
 
 /* remove stared courses padding */
@@ -169,6 +178,10 @@ section#block-region-content section.block_cohortspecifichtml {
   grid-area: tools;
 }
 
+section[role="region"] {
+    margin-bottom: 0 !important;
+}
+
 /* Timeline sidebar fixes */
 html .block_timeline .timeline-action-button {
   margin-left: unset;
@@ -297,7 +310,7 @@ html .lightModeOnly {
   border: none;
   border-radius: 0.2rem;
   padding: 0.2rem 0.5rem;
-  margin: 0.2rem 0.2rem;
+  /* margin: 0.2rem 0.2rem; */
   cursor: pointer;
 }
 
@@ -393,6 +406,10 @@ html .secondary-navigation {
   --fc-highlight-color: rgba(188, 232, 241, 0.3);
   --fc-today-bg-color: rgba(255, 220, 40, 0.15);
   --fc-now-indicator-color: red;
+}
+
+:root .fc .fc-toolbar.fc-header-toolbar {
+  margin-bottom: 1rem;
 }
 
 /* Questionnaire */

@@ -93,29 +93,7 @@ const CalendarView = ({ toggleView }: { toggleView: () => void }) => {
   return (
     <>
       {settingsLoaded &&
-        (settings.icalSources.length == 0 &&
-        !settings.showScrollbar &&
-        !settings.showStudentCouncil ? (
-          <div className="calendar-missing-setup text-center">
-            <h3>No calendars enabled</h3>
-            <p>
-              Go the settings view to add calendar subscriptions to your
-              calendar
-            </p>
-            <p>
-              <a
-                href="https://github.com/PhilipFlyvholm/learnit-plus-plus/wiki/The-Calendar-Component"
-                target="_blank">
-                Guide for setup
-              </a>
-            </p>
-            <button
-              className="btn btn-outline-secondary my-2"
-              onClick={toggleView}>
-              Open settings
-            </button>
-          </div>
-        ) : (
+        ((
           <FullCalendar
             slotDuration={settings.slotduration}
             slotMinTime={settings.slotMinTime}
@@ -215,6 +193,7 @@ const CalendarView = ({ toggleView }: { toggleView: () => void }) => {
             firstDay={1} // Monday
             weekNumbers={true}
             weekends={settings.showWeekends}
+            allDayText=""
             allDaySlot={
               settings.slotMinTime === "00:00:00" &&
               settings.slotMaxTime === "23:59:59"
@@ -222,9 +201,11 @@ const CalendarView = ({ toggleView }: { toggleView: () => void }) => {
                 : undefined
             }
             height={"auto"}
-            allDayText=""
             scrollTime={"08:00:00"}
             eventClick={(info) => {
+              if (info.event.url.startsWith("https://learnit.itu.dk")) {
+                return
+              }
               info.jsEvent.preventDefault() // don't let the browser navigate
               if (info.event.url) {
                 const url = info.event.url.startsWith("http")
