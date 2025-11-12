@@ -10,7 +10,7 @@ import type { PlasmoCSConfig } from "plasmo";
 import injectThemeSelection from "~features/themeSwitchInSettings";
 import { addDebugButton } from "~features/clearLocalStorage";
 import { makeNewToolsCard } from "~features/customizeToolsCard";
-import { replaceResourceTags } from "~features/newWindowATags";
+import { modifyLinkBehavior } from "~features/newWindowATags";
 import { autoRedirectLoginPage } from "~features/autoRedirectLoginPage";
 import { initializeDashboardSwappy } from "~components/dashboard/dragAndDrop";
 
@@ -34,7 +34,7 @@ import { initializeDashboardSwappy } from "~components/dashboard/dragAndDrop";
   }
   fixMessageCtrl();
   injectThemeSelection();
-  replaceResourceTags();
+  modifyLinkBehavior();
   addTargetBlankToLinks();
   process.env.NODE_ENV === "development" && addDebugButton();
   document.documentElement.classList.add("loaded");
